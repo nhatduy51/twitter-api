@@ -22,3 +22,7 @@ export const RegisterController = async (req: Request<ParamsDictionary, any, Reg
     data: result
   })
 }
+
+export const LogoutController = async () => {
+  
+}
