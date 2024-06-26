@@ -9,7 +9,7 @@ interface UserType {
   password: string
   created_at?: Date
   updated_at?: Date
-  email_verify_token?: string
+  email_verify_token: string
   forgot_password_token?: string
   verify?: UserVerifyStatus
 

@@ -21,4 +21,18 @@ export const USER_MESSAGES = {
   CONFIRM_PASSWORD_MUST_BE_THE_SAME_AS_PASSWORD: 'Confirm password must be the same as password',
   DATE_OF_BIRTH_MUST_BE_ISO8601: 'Date of birth must be ISO8601',
   ACCESS_TOKEN_IS_REQUIRED: 'Token is required',
+  REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
+  REFRESH_TOKEN_IS_INVALID: 'Refresh token is invalid',
+  USED_REFRESH_TOKEN_OR_NOT_EXIST: 'Used refresh token OR not exist',
+  LOGOUT_SUCCESS: 'Logout was successful',
+  EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verification token is required',
+  EMAIL_ALREADY_VERIFIED_BEFORE: 'Email already verified',
+  EMAIL_VERIFY_SUCCESS: 'Email verification successful',
+  RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verification token successfully',
+  CHECK_EMAIL_FORGOT_PASSWORD_SUCCESS: 'Check email for forgot password success',
+  FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Forgot password is required',
+  VERIFY_FORK_PASSWORD_SUCCESS: 'Verify forgot password success',
+  INVALID_FORGOT_PASSWORD_TOKEN_OR_NOT_EXIST: 'Invalid forgot password token',
+  RESET_PASSWORD_SUCCESS: 'Reset password successfully',
+  GET_ME_SUCCESS: 'Get user profile success'
 }
