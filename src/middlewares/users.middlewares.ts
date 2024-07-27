@@ -9,8 +9,11 @@ import usersService from '~/services/users.services'
 import { hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
-import { capitalize } from 'lodash'
+import { capitalize, min } from 'lodash'
 import { ObjectId } from 'mongodb'
+import { TokenPayload } from '~/models/request/Users.requests'
+import { UserVerifyStatus } from '~/constants/enum'
+import { REGEX_USERNAME } from '~/constants/regex'
 
 const passwordSchema: ParamSchema = {
   notEmpty: {
@@ -116,6 +119,55 @@ const forgotPasswordTokenSchema: ParamSchema = {
   }
 }
 
+const nameSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USER_MESSAGES.NAME_IS_REQUIRED
+  },
+  isString: true,
+  trim: true,
+  isLength: {
+    options: {
+      min: 1,
+      max: 100
+    },
+    errorMessage: USER_MESSAGES.NAME_LENGTH_MUST_BE_FROM_1_TO_100
+  }
+}
+
+const dayOfBirthSchema: ParamSchema = {
+  isISO8601: {
+    options: {
+      strict: true,
+      strictSeparator: true
+    },
+    errorMessage: USER_MESSAGES.DATE_OF_BIRTH_MUST_BE_ISO8601
+  }
+}
+
+const followSchema: ParamSchema = {
+  custom: {
+    options: async (value, { req }) => {
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: USER_MESSAGES.USER_ID_INVALID_VALUE,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+
+      const followed_user = await databaseService.users.findOne({
+        _id: new ObjectId(value)
+      })
+
+      if (!followed_user) {
+        throw new ErrorWithStatus({
+          message: USER_MESSAGES.USER_NOT_FOUND,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+    }
+  }
+}
+
 export const loginValidator = validate(
   checkSchema({
     email: {
@@ -165,19 +217,7 @@ export const loginValidator = validate(
 
 export const registerValidator = validate(
   checkSchema({
-    name: {
-      notEmpty: {
-        errorMessage: USER_MESSAGES.NAME_IS_REQUIRED
-      },
-      isString: true,
-      isLength: {
-        options: {
-          min: 1,
-          max: 100
-        },
-        errorMessage: USER_MESSAGES.NAME_LENGTH_MUST_BE_FROM_1_TO_100
-      }
-    },
+    name: nameSchema,
     email: {
       notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
@@ -199,15 +239,7 @@ export const registerValidator = validate(
     },
     password: passwordSchema,
     confirm_password: confirmPasswordSchema,
-    day_of_birth: {
-      isISO8601: {
-        options: {
-          strict: true,
-          strictSeparator: true
-        },
-        errorMessage: USER_MESSAGES.DATE_OF_BIRTH_MUST_BE_ISO8601
-      }
-    }
+    day_of_birth: dayOfBirthSchema
   })
 )
 
@@ -357,5 +389,133 @@ export const resetPasswordValidator = validate(
     password: passwordSchema,
     confirm_password: confirmPasswordSchema,
     forgot_password_token: forgotPasswordTokenSchema
+  })
+)
+
+export const verifiedUserValidator = async (req: Request, res: Response, next: NextFunction) => {
+  const { verify } = req.decoded_authorization as TokenPayload
+  if (verify !== UserVerifyStatus.Verified) {
+    return next(
+      new ErrorWithStatus({
+        message: USER_MESSAGES.USER_NOT_VERIFIED,
+        status: httpStatus.FORBIDDEN
+      })
+    )
+  }
+  next()
+}
+
+export const updateMeValidator = validate(
+  checkSchema({
+    name: {
+      ...nameSchema,
+      optional: true,
+      notEmpty: undefined
+    },
+    day_of_birth: {
+      ...dayOfBirthSchema,
+      optional: true
+    },
+    bio: {
+      optional: true,
+      isString: {
+        errorMessage: USER_MESSAGES.BIO_MUST_BE_A_STRING
+      },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        },
+        errorMessage: USER_MESSAGES.BIO_LENGTH_MUST_BE_FROM_1_TO_200
+      }
+    },
+    location: {
+      optional: true,
+      isString: {
+        errorMessage: USER_MESSAGES.LOCATION_MUST_BE_A_STRING
+      },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 100
+        },
+        errorMessage: USER_MESSAGES.LOCATION_LENGTH_MUST_BE_FROM_1_TO_100
+      }
+    },
+    website: {
+      optional: true,
+      isString: {
+        errorMessage: USER_MESSAGES.WEBSITE_MUST_BE_A_STRING
+      },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        },
+        errorMessage: USER_MESSAGES.WEBSITE_LENGTH_MUST_BE_FROM_1_TO_200
+      }
+    },
+    username: {
+      optional: true,
+      isString: {
+        errorMessage: USER_MESSAGES.USER_NAME_MUST_BE_A_STRING
+      },
+      trim: true,
+      custom: {
+        options: async (value, { req }) => {
+          if (!REGEX_USERNAME.test(value)) {
+            throw Error(USER_MESSAGES.USERNAME_INVALID)
+          }
+          const user = await databaseService.users.findOne({ username: value })
+
+          if (user) {
+            throw Error(USER_MESSAGES.USERNAME_IS_EXISTED)
+          }
+        }
+      }
+    },
+    avatar: {
+      optional: true,
+      isString: {
+        errorMessage: USER_MESSAGES.AVATAR_MUST_BE_A_STRING
+      },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 400
+        },
+        errorMessage: USER_MESSAGES.AVATAR_LENGTH_MUST_BE_FROM_1_TO_400
+      }
+    },
+    cover_photo: { 
+      optional: true,
+      isString: {
+        errorMessage: USER_MESSAGES.AVATAR_MUST_BE_A_STRING
+      },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 400
+        },
+        errorMessage: USER_MESSAGES.AVATAR_LENGTH_MUST_BE_FROM_1_TO_400
+      }
+    }
+  })
+)
+
+export const followValidator = validate(
+  checkSchema({
+    followed_user_id: followSchema
+  })
+)
+
+export const unFollowValidator = validate(
+  checkSchema({
+    user_id: followSchema
   })
 )
