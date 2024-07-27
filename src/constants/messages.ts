@@ -34,5 +34,26 @@ export const USER_MESSAGES = {
   VERIFY_FORK_PASSWORD_SUCCESS: 'Verify forgot password success',
   INVALID_FORGOT_PASSWORD_TOKEN_OR_NOT_EXIST: 'Invalid forgot password token',
   RESET_PASSWORD_SUCCESS: 'Reset password successfully',
-  GET_ME_SUCCESS: 'Get user profile success'
+  GET_ME_SUCCESS: 'Get user profile success',
+  USER_NOT_VERIFIED: 'User not verified',
+  BIO_MUST_BE_A_STRING: 'Bio must be a string',
+  BIO_LENGTH_MUST_BE_FROM_1_TO_200: 'Bio must be from 1 to 200 characters',
+  LOCATION_MUST_BE_A_STRING: 'Location must be a string',
+  LOCATION_LENGTH_MUST_BE_FROM_1_TO_100: 'Bio must be from 1 to 100 characters',
+  WEBSITE_MUST_BE_A_STRING: 'Website must be a string',
+  WEBSITE_LENGTH_MUST_BE_FROM_1_TO_200: 'Website must be from 1 to 200 characters',
+  USER_NAME_MUST_BE_A_STRING: 'Username must be a string',
+  USER_NAME_LENGTH_MUST_BE_FROM_1_TO_50: 'Username must be from 1 to 50 characters',
+  AVATAR_MUST_BE_A_STRING: 'Image must be a string',
+  AVATAR_LENGTH_MUST_BE_FROM_1_TO_400: 'Image must be from 1 to 400 characters',
+  UPDATE_ME_SUCCESS: 'Update user successfully',
+  GET_PROFILE_SUCCESS: 'Get profile successfully',
+  FOLLOW_SUCCESS: 'Follow user successfully',
+  USER_FOLLOWED: 'User already following',
+  USER_ID_INVALID_VALUE: 'User id Invalid value',
+  ALREADY_UN_FOLLOWED: 'Already unfollowed',
+  UN_FOLLOW_SUCCESS: 'Unfollow user successfully',
+  USERNAME_INVALID:
+    'Username must be 4-15 characters long and contain only letters, numbers, underscores, not only numbers',
+  USERNAME_IS_EXISTED: 'User name already exists'
 }
