@@ -491,7 +491,7 @@ export const updateMeValidator = validate(
         errorMessage: USER_MESSAGES.AVATAR_LENGTH_MUST_BE_FROM_1_TO_400
       }
     },
-    cover_photo: { 
+    cover_photo: {
       optional: true,
       isString: {
         errorMessage: USER_MESSAGES.AVATAR_MUST_BE_A_STRING

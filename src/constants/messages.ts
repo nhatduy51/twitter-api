@@ -55,5 +55,6 @@ export const USER_MESSAGES = {
   UN_FOLLOW_SUCCESS: 'Unfollow user successfully',
   USERNAME_INVALID:
     'Username must be 4-15 characters long and contain only letters, numbers, underscores, not only numbers',
-  USERNAME_IS_EXISTED: 'User name already exists'
+  USERNAME_IS_EXISTED: 'User name already exists',
+  GMAIL_NOT_FOUND: 'Email address not verify'
 }
