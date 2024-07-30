@@ -5,7 +5,7 @@ import usersRoute from './routes/users.routes'
 import databaseService from './services/connect.db'
 
 const app = express()
-const port = 3000
+const port = 4000
 
 databaseService.connect()
 

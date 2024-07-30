@@ -11,6 +11,7 @@ import { USER_MESSAGES } from '~/constants/messages'
 import { ErrorWithStatus } from '~/models/errors'
 import { httpStatus } from '~/constants/httpStatus'
 import Follower from '~/models/schemas/Follower.schema'
+import axios from 'axios'
 
 config()
 
@@ -25,7 +26,7 @@ class UsersService {
       privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
       option: {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN
-      },
+      }
     })
   }
 
@@ -76,6 +77,47 @@ class UsersService {
 
   private signAccessAndRefreshToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
     return Promise.all([this.sigAccessToken({ user_id, verify }), this.signRefreshToken({ user_id, verify })])
+  }
+
+  private async getOauthToken(code: string) {
+    const body = {
+      code,
+      client_id: process.env.OAUTH_CLIENT_ID,
+      client_secret: process.env.OAUTH_CLIENT_SECRET,
+      redirect_uri: process.env.OAUTH_REDIRECT_URI,
+      grant_type: 'authorization_code'
+    }
+
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    return data as {
+      access_token: string
+      id_token: string
+    }
+  }
+
+  private async getGoogleInfoUser(access_token: string, id_token: string) {
+    const { data } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
+      params: {
+        access_token,
+        alt: 'json'
+      },
+      headers: {
+        Authorization: `Bearer ${id_token}`
+      }
+    })
+    return data as {
+      id: string
+      email: string
+      verified_email: boolean
+      name: string
+      given_name: string
+      family_name: string
+      picture: string
+    }
   }
 
   async register(payload: RegisterRequestBody) {
@@ -131,6 +173,48 @@ class UsersService {
     return {
       access_token,
       refresh_token
+    }
+  }
+
+  async oauth(code: string) {
+    const { access_token, id_token } = await this.getOauthToken(code)
+    const user_info = await this.getGoogleInfoUser(access_token, id_token)
+    if (!user_info.email) {
+      throw new ErrorWithStatus({
+        message: USER_MESSAGES.GMAIL_NOT_FOUND,
+        status: httpStatus.BAD_REQUEST
+      })
+    }
+    //Kiem tra email da dang ky hay chua
+    const user = await databaseService.users.findOne({ email: user_info.email })
+    //Neu ton tai thi login
+    if (user) {
+      const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+        user_id: user._id.toString(),
+        verify: UserVerifyStatus.Verified
+      })
+      await databaseService.refreshTokens.insertOne(
+        new RefreshToken({
+          user_id: new ObjectId(user._id),
+          token: refresh_token as string
+        })
+      )
+      return {
+        access_token,
+        refresh_token,
+        newUser: false
+      }
+    } else {
+      //Khong thi tao moi user
+      const password = Math.random().toString(36).substring(2, 15)
+      const data = this.register({
+        name: user_info.name,
+        email: user_info.email,
+        day_of_birth: new Date().toISOString(),
+        password: hashPassword(password),
+        confirm_password: hashPassword(password)
+      })
+      return { ...data, newUser: true }
     }
   }
 
